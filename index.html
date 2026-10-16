@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المناطق الحرارية في العالم - لعبة التلوين بالفرشاة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-ivory: #F6F3EB;
+            --maroon-primary: #7F2020;
+            --maroon-hover: #631818;
+            --green-sage: #869B7E;
+            --beige-accent: #C9CAAC;
+            --text-dark: #2c3e50;
+            --shadow-color: rgba(127, 32, 32, 0.22);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 10px;
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .overlay-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(246, 243, 235, 0.95);
+            backdrop-filter: blur(6px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            text-align: center;
+            padding: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .overlay-card {
+            background: #ffffff;
+            color: var(--text-dark);
+            padding: 40px;
+            border-radius: 28px;
+            box-shadow: 0 20px 50px var(--shadow-color);
+            max-width: 600px;
+            width: 100%;
+            border: 4px solid var(--maroon-primary);
+            transform: scale(0.9);
+            animation: cardPopup 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes cardPopup {
+            to { transform: scale(1); }
+        }
+
+        .overlay-card h2 {
+            color: var(--maroon-primary);
+            font-size: 2.1rem;
+            margin-top: 0;
+            font-weight: 900;
+        }
+
+        .overlay-card p {
+            font-size: 1.15rem;
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .start-btn {
+            background: var(--maroon-primary);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(127, 32, 32, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .start-btn:hover {
+            background: var(--maroon-hover);
+            transform: translateY(-3px) scale(1.03);
+        }
+
+        header {
+            width: 100%;
+            max-width: 1250px;
+            padding: 12px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--green-sage);
+            border-bottom: 4px solid var(--maroon-primary);
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.45rem;
+            color: #ffffff;
+            font-weight: 900;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .teacher-signature {
+            font-size: 0.92rem;
+            color: #ffffff;
+            font-weight: 700;
+            background: var(--maroon-primary);
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1.5px solid var(--bg-ivory);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stats-bar {
+            font-size: 1.05rem;
+            font-weight: 800;
+            background: var(--bg-ivory);
+            border: 2px solid var(--maroon-primary);
+            padding: 5px 18px;
+            border-radius: 20px;
+            color: var(--text-dark);
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 1250px;
+            height: 10px;
+            background: rgba(134, 155, 126, 0.3);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 1px solid var(--green-sage);
+            z-index: 10;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--green-sage), var(--maroon-primary));
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+        }
+
+        .game-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 18px;
+            max-width: 1250px;
+            width: 100%;
+            flex-wrap: wrap;
+            z-index: 10;
+        }
+
+        .sidebar-column {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 270px;
+        }
+
+        .panel-card {
+            background: #ffffff;
+            border: 3px solid var(--green-sage);
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+        }
+
+        .panel-card h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            color: var(--maroon-primary);
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .palette-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            background: #fafafa;
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: right;
+            color: var(--text-dark);
+        }
+
+        .palette-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--maroon-primary);
+        }
+
+        .palette-btn.selected {
+            border-color: var(--maroon-primary);
+            background: var(--beige-accent);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            transform: scale(1.02);
+        }
+
+        .palette-btn.completed {
+            opacity: 0.5;
+            background: #e2e8f0;
+        }
+
+        .color-circle {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+
+        .circle-green { background-color: #27ae60; }
+        .circle-yellow { background-color: #f1c40f; }
+        .circle-red { background-color: #e74c3c; }
+
+        .tool-btn {
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .tool-btn.active {
+            background: var(--maroon-primary);
+            color: white;
+            border-color: var(--maroon-primary);
+        }
+
+        .size-selector, .tools-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            justify-content: space-between;
+        }
+
+        .map-container {
+            position: relative;
+            width: 700px;
+            height: 420px;
+            background: #ffffff;
+            border: 4px solid var(--maroon-primary);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+            z-index: 10;
+        }
+
+        canvas#map-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .message-box {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--maroon-primary);
+            min-height: 35px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .controls {
+            margin-top: 10px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .btn-custom {
+            background: var(--maroon-primary);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(127, 32, 32, 0.3);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn-custom:hover {
+            transform: scale(1.05);
+            background: var(--maroon-hover);
+        }
+
+        footer {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #555;
+            text-align: center;
+            border-top: 2px solid rgba(127, 32, 32, 0.2);
+            padding-top: 8px;
+            width: 100%;
+            max-width: 1250px;
+            font-weight: 800;
+            z-index: 10;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- شاشة البداية -->
+    <div class="overlay-screen" id="start-screen">
+        <div class="overlay-card">
+            <h2>🌍 المناطق الحرارية في العالم</h2>
+            <p>اختر المنطقة من باليت المفتاح، واستخدم الفرشاة لتلوين نطاقها الجغرافي الصحيح على مجسم الكرة الأرضية!</p>
+            <div style="margin-bottom: 25px;" class="teacher-signature">إعداد: أ. عهود العبرية — مدرسة وادي غول للتعليم الأساسي (1-9)</div>
+            <button class="start-btn" onclick="startGame()">ابدأ التلوين الآن 🚀</button>
+        </div>
+    </div>
+
+    <!-- شاشة النهاية -->
+    <div class="overlay-screen" id="end-screen" style="display: none; opacity: 0; visibility: hidden;">
+        <div class="overlay-card">
+            <h2>🏆 إنجاز رائع ومبدع!</h2>
+            <p>تهانينا! لقد نجحت في تلوين المناطق الحرارية في العالم على مجسم الكرة الأرضية بدقة جغرافية عالية.</p>
+            <div style="font-size: 1.6rem; color: var(--maroon-primary); font-weight: 900; margin-bottom: 20px;" id="final-score-text">مجموعك: 50 / 50</div>
+            <div style="margin-bottom: 25px;" class="teacher-signature">إعداد: أ. عهود العبرية — مدرسة وادي غول للتعليم الأساسي (1-9)</div>
+            <button class="start-btn" onclick="location.reload()">إعادة اللعب 🔄</button>
+        </div>
+    </div>
+
+    <header>
+        <h1>🌍 المناطق الحرارية في العالم</h1>
+        <div class="teacher-signature">إعداد: أ. عهود العبرية — مدرسة وادي غول للتعليم الأساسي (1-9)</div>
+        <div class="header-controls">
+            <div class="stats-bar">⭐ النقاط: <span id="score">0</span> / 50</div>
+        </div>
+    </header>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="game-wrapper">
+        <!-- باليت المفتاح بدون كتابة اسم اللون -->
+        <div class="sidebar-column">
+            <div class="panel-card">
+                <h3>🎨 باليت المفتاح</h3>
+                
+                <button class="palette-btn" id="btn-cold" onclick="selectColor('cold', 'btn-cold', '#27ae60')">
+                    <div class="color-circle circle-green"></div>
+                    <span>المنطقة الباردة</span>
+                </button>
+
+                <button class="palette-btn" id="btn-temperate" onclick="selectColor('temperate', 'btn-temperate', '#f1c40f')">
+                    <div class="color-circle circle-yellow"></div>
+                    <span>المنطقة المعتدلة</span>
+                </button>
+
+                <button class="palette-btn" id="btn-hot" onclick="selectColor('hot', 'btn-hot', '#e74c3c')">
+                    <div class="color-circle circle-red"></div>
+                    <span>المنطقة الحارة</span>
+                </button>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 12px 0;">
+
+                <h3 style="font-size: 0.95rem;">أدوات الرسم</h3>
+                <div class="tools-row">
+                    <button class="tool-btn active" id="tool-brush" onclick="setTool('brush')">🖌️ فرشاة</button>
+                    <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')">🧹 ممحاة</button>
+                </div>
+
+                <h3 style="font-size: 0.92rem; margin-top: 8px;">حجم الفرشاة</h3>
+                <div class="size-selector">
+                    <button class="tool-btn" id="size-s" onclick="setBrushSize(12)">صغير</button>
+                    <button class="tool-btn active" id="size-m" onclick="setBrushSize(22)">وسط</button>
+                    <button class="tool-btn" id="size-l" onclick="setBrushSize(35)">كبير</button>
+                </div>
+
+                <div class="tools-row" style="margin-top: 8px;">
+                    <button class="tool-btn" onclick="undoCanvas()" style="flex:1;">↩️ تراجع</button>
+                    <button class="tool-btn" onclick="clearCanvas()" style="flex:1; color: #c0392b;">🗑️ مسح</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- مجسم الكرة الأرضية التفاعلي بدون خطوط طول -->
+        <div class="map-container" id="map-box">
+            <canvas id="map-canvas" width="700" height="420"></canvas>
+        </div>
+    </div>
+
+    <div class="message-box" id="msg">اختر منطقة من الباليت وحرك الفرشاة لتلوين نطاقها الجغرافي الصحيح!</div>
+
+    <div class="controls">
+        <button class="btn-custom" onclick="location.reload()">إعادة اللعب 🔄</button>
+    </div>
+
+    <footer>
+        إعداد: أ. عهود العبرية — مدرسة وادي غول للتعليم الأساسي (1-9)
+    </footer>
+
+    <script>
+        function startGame() {
+            const startScreen = document.getElementById('start-screen');
+            startScreen.style.opacity = '0';
+            setTimeout(() => { startScreen.style.display = 'none'; }, 400);
+        }
+
+        // --- الخلفية للجسيمات المتحركة ---
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgParticles = [];
+
+        function resizeBgCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBgCanvas);
+        resizeBgCanvas();
+
+        for(let i=0; i<30; i++) {
+            bgParticles.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                r: Math.random() * 2.5 + 1,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                alpha: Math.random() * 0.3 + 0.1
+            });
+        }
+
+        function renderBgParticles() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            bgCtx.fillStyle = '#869B7E';
+            bgParticles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if(p.x < 0) p.x = bgCanvas.width;
+                if(p.x > bgCanvas.width) p.x = 0;
+                if(p.y < 0) p.y = bgCanvas.height;
+                if(p.y > bgCanvas.height) p.y = 0;
+
+                bgCtx.globalAlpha = p.alpha;
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                bgCtx.fill();
+            });
+            requestAnimationFrame(renderBgParticles);
+        }
+        renderBgParticles();
+
+        // --- مجسم الكرة الأرضية (بدون خطوط طول) والنطاقات الجغرافية ---
+        const mapCanvas = document.getElementById('map-canvas');
+        const mapCtx = mapCanvas.getContext('2d');
+
+        const zones = [
+            { id: 'coldN', name: "المنطقة الباردة الشمالية", type: "cold", minY: 0.05, maxY: 0.18, color: "#27ae60", completed: false },
+            { id: 'tempN', name: "المنطقة المعتدلة الشمالية", type: "temperate", minY: 0.18, maxY: 0.38, color: "#f1c40f", completed: false },
+            { id: 'hot',   name: "المنطقة الحارة", type: "hot", minY: 0.38, maxY: 0.62, color: "#e74c3c", completed: false },
+            { id: 'tempS', name: "المنطقة المعتدلة الجنوبية", type: "temperate", minY: 0.62, maxY: 0.82, color: "#f1c40f", completed: false },
+            { id: 'coldS', name: "المنطقة الباردة الجنوبية", type: "cold", minY: 0.82, maxY: 0.95, color: "#27ae60", completed: false }
+        ];
+
+        let selectedColorType = null;
+        let selectedBtnId = null;
+        let currentBrushColor = null;
+        let currentTool = 'brush';
+        let brushSize = 22;
+        let isDrawing = false;
+        let score = 0;
+        let completedZonesCount = 0;
+
+        const paintCanvas = document.createElement('canvas');
+        paintCanvas.width = 700;
+        paintCanvas.height = 420;
+        const paintCtx = paintCanvas.getContext('2d');
+
+        let undoHistory = [];
+
+        function saveState() {
+            if (undoHistory.length > 15) undoHistory.shift();
+            undoHistory.push(paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height));
+        }
+
+        saveState();
+        redrawAll();
+
+        // رسم مجسم بيضاوي ناصع البياض للكرة الأرضية (بدون خطوط طول نهائياً)
+        function drawGlobe() {
+            const cx = mapCanvas.width / 2;
+            const cy = mapCanvas.height / 2;
+            const rx = 310;
+            const ry = 190;
+
+            // 1. خلفية الكرة الأرضية البيضاء
+            mapCtx.beginPath();
+            mapCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+            mapCtx.fillStyle = "#ffffff";
+            mapCtx.fill();
+            mapCtx.strokeStyle = "#2c3e50";
+            mapCtx.lineWidth = 3;
+            mapCtx.stroke();
+
+            // 2. رسم دوائر العرض الفاصلة للمناطق الحرارية فقط (بدون خطوط طول)
+            zones.forEach((z, idx) => {
+                const yPos = z.minY * mapCanvas.height;
+                mapCtx.beginPath();
+                mapCtx.setLineDash([6, 4]);
+                mapCtx.strokeStyle = "#7F2020";
+                mapCtx.lineWidth = 1.5;
+                const widthAtY = rx * Math.sqrt(1 - Math.pow((yPos - cy)/ry, 2));
+                mapCtx.moveTo(cx - widthAtY, yPos);
+                mapCtx.lineTo(cx + widthAtY, yPos);
+                mapCtx.stroke();
+                mapCtx.setLineDash([]);
+            });
+        }
+
+        function redrawAll() {
+            mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+            drawGlobe();
+
+            mapCtx.save();
+            mapCtx.globalCompositeOperation = 'source-atop';
+            mapCtx.drawImage(paintCanvas, 0, 0);
+            mapCtx.restore();
+        }
+
+        function selectColor(colorType, btnId, brushColor) {
+            document.querySelectorAll('.palette-btn').forEach(btn => btn.classList.remove('selected'));
+            selectedColorType = colorType;
+            selectedBtnId = btnId;
+            currentBrushColor = brushColor;
+            currentTool = 'brush';
+            document.getElementById('tool-brush').classList.add('active');
+            document.getElementById('tool-eraser').classList.remove('active');
+            document.getElementById(btnId).classList.add('selected');
+            document.getElementById("msg").innerText = `تم اختيار المنطقة. لون النطاق المناسب على مجسم الكرة الأرضية بالفرشاة.`;
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tools-row .tool-btn').forEach(b => b.classList.remove('active'));
+            if (tool === 'brush') {
+                document.getElementById('tool-brush').classList.add('active');
+                document.getElementById("msg").innerText = "أداة الفرشاة نشطة.";
+            } else {
+                document.getElementById('tool-eraser').classList.add('active');
+                document.getElementById("msg").innerText = "أداة الممحاة نشطة.";
+            }
+        }
+
+        function setBrushSize(size) {
+            brushSize = size;
+            document.querySelectorAll('.size-selector .tool-btn').forEach(b => b.classList.remove('active'));
+            if (size === 12) document.getElementById('size-s').classList.add('active');
+            else if (size === 22) document.getElementById('size-m').classList.add('active');
+            else if (size === 35) document.getElementById('size-l').classList.add('active');
+        }
+
+        function undoCanvas() {
+            if (undoHistory.length > 1) {
+                undoHistory.pop();
+                const lastState = undoHistory[undoHistory.length - 1];
+                paintCtx.putImageData(lastState, 0, 0);
+                redrawAll();
+                checkZonesCompletion();
+                document.getElementById("msg").innerText = "تم التراجع عن الخطوة الأخيرة.";
+            }
+        }
+
+        function clearCanvas() {
+            if (confirm("هل تريد مسح لوحة التلوين بالكامل؟")) {
+                paintCtx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+                saveState();
+                redrawAll();
+                zones.forEach(z => { z.completed = false; });
+                score = 0;
+                completedZonesCount = 0;
+                document.getElementById("score").innerText = score;
+                document.getElementById("progress-bar").style.width = '0%';
+                document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('completed'));
+                document.getElementById("msg").innerText = "تم مسح اللوحة. ابدأ التلوين من جديد.";
+            }
+        }
+
+        function drawStroke(x, y) {
+            const yPct = y / mapCanvas.height;
+            const targetZone = zones.find(z => yPct >= z.minY && yPct < z.maxY);
+
+            if (!targetZone) return;
+
+            if (currentTool === 'brush') {
+                if (!selectedColorType) {
+                    document.getElementById("msg").innerText = "⚠️ رجاءً اختر منطقة من الباليت أولاً!";
+                    return;
+                }
+
+                if (selectedColorType !== targetZone.type) {
+                    document.getElementById("msg").innerText = `❌ خطأ جغرافياً! هذا النطاق هو "${targetZone.name}".`;
+                    return;
+                }
+
+                paintCtx.fillStyle = currentBrushColor;
+                paintCtx.globalAlpha = 0.65;
+            } else {
+                paintCtx.globalCompositeOperation = 'destination-out';
+                paintCtx.fillStyle = 'rgba(0,0,0,1)';
+            }
+
+            paintCtx.beginPath();
+            paintCtx.arc(x, y, brushSize, 0, Math.PI * 2);
+            paintCtx.fill();
+            paintCtx.globalCompositeOperation = 'source-over';
+
+            redrawAll();
+            checkZonesCompletion();
+        }
+
+        function checkZonesCompletion() {
+            const imgData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
+            const data = imgData.data;
+
+            zones.forEach(z => {
+                let pixelCount = 0;
+                const startY = Math.floor(z.minY * paintCanvas.height);
+                const endY = Math.floor(z.maxY * paintCanvas.height);
+
+                for (let y = startY; y < endY; y += 4) {
+                    for (let x = 0; x < paintCanvas.width; x += 4) {
+                        const idx = (y * paintCanvas.width + x) * 4;
+                        const alpha = data[idx + 3];
+                        if (alpha > 50) {
+                            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+                            if (z.type === 'cold' && g > r && g > b) pixelCount++;
+                            else if (z.type === 'temperate' && r > 150 && g > 150 && b < 100) pixelCount++;
+                            else if (z.type === 'hot' && r > 180 && g < 100) pixelCount++;
+                        }
+                    }
+                }
+
+                if (pixelCount > 300 && !z.completed) {
+                    z.completed = true;
+                    triggerConfettiAtPos(paintCanvas.width / 2, (z.minY + z.maxY) * paintCanvas.height / 2);
+                    
+                    score += 10;
+                    completedZonesCount++;
+                    document.getElementById("score").innerText = score;
+                    document.getElementById("progress-bar").style.width = `${(completedZonesCount / 5) * 100}%`;
+
+                    const sameTypeZones = zones.filter(zn => zn.type === z.type);
+                    if (sameTypeZones.every(zn => zn.completed)) {
+                        if (z.type === 'cold') document.getElementById('btn-cold').classList.add('completed');
+                        if (z.type === 'temperate') document.getElementById('btn-temperate').classList.add('completed');
+                        if (z.type === 'hot') document.getElementById('btn-hot').classList.add('completed');
+                    }
+
+                    if (completedZonesCount === 5) {
+                        document.getElementById("msg").innerText = "🏆 ممتاز جداً! اكتملت جميع المناطق الحرارية في العالم بنجاح!";
+                        document.getElementById('final-score-text').innerText = `مجموعك: ${score} / 50`;
+                        setTimeout(() => {
+                            document.getElementById('end-screen').style.display = 'flex';
+                            document.getElementById('end-screen').style.opacity = '1';
+                            document.getElementById('end-screen').style.visibility = 'visible';
+                        }, 800);
+                    } else {
+                        document.getElementById("msg").innerText = `🎉 أحسنت! اكتملت "${z.name}". استمر في التلوين!`;
+                    }
+                }
+            });
+        }
+
+        mapCanvas.addEventListener('mousedown', (e) => { isDrawing = true; saveState(); handlePointer(e); });
+        mapCanvas.addEventListener('mousemove', (e) => { if (isDrawing) handlePointer(e); });
+        window.addEventListener('mouseup', () => { isDrawing = false; });
+
+        mapCanvas.addEventListener('touchstart', (e) => { isDrawing = true; saveState(); handlePointer(e.touches[0]); e.preventDefault(); }, {passive: false});
+        mapCanvas.addEventListener('touchmove', (e) => { if (isDrawing) handlePointer(e.touches[0]); e.preventDefault(); }, {passive: false});
+        window.addEventListener('touchend', () => { isDrawing = false; });
+
+        function handlePointer(e) {
+            const rect = mapCanvas.getBoundingClientRect();
+            const scaleX = mapCanvas.width / rect.width;
+            const scaleY = mapCanvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            drawStroke(x, y);
+        }
+
+        // --- الجسيمات الاحتفالية ---
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let confettis = [];
+
+        function resizeConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
+
+        function triggerConfettiAtPos(cx, cy) {
+            for(let i=0; i<25; i++) {
+                confettis.push({
+                    x: cx, y: cy,
+                    vx: (Math.random() - 0.5) * 7,
+                    vy: (Math.random() - 0.5) * 7 - 2,
+                    color: ['#7F2020', '#869B7E', '#f1c40f', '#27ae60'][Math.floor(Math.random()*4)],
+                    size: Math.random() * 5 + 3,
+                    life: 1
+                });
+            }
+        }
+
+        function renderConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            confettis.forEach((p, idx) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.15;
+                p.life -= 0.02;
+
+                if (p.life <= 0) {
+                    confettis.splice(idx, 1);
+                } else {
+                    confettiCtx.globalAlpha = p.life;
+                    confettiCtx.fillStyle = p.color;
+                    confettiCtx.beginPath();
+                    confettiCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    confettiCtx.fill();
+                }
+            });
+            requestAnimationFrame(renderConfetti);
+        }
+        renderConfetti();
+    </script>
+</body>
+</html>
